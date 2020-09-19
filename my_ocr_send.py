@@ -12,11 +12,11 @@
 import requests
 import base64
 import pyperclip as pc
-import subprocess
-import logging
+# import subprocess
+# import logging
 import os
-pc.set_clipboard("xclip")
-logger = logging.getLogger(__name__)
+# pc.set_clipboard("xclip")
+# logger = logging.getLogger(__name__)
 
 # def write_to_file(file_name):
 #     return subprocess.check_output(
@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 def write_to_file(file_name):
-    cmd = 'flameshot gui -r | xclip -selection clipboard && xclip -selection clipboard -o -t image/jpg > ' + file_name
+    cmd = 'flameshot gui -r > ' + file_name
     os.system(cmd)
     # run_cmd(cmd)
 
