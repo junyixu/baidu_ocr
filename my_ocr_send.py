@@ -12,38 +12,62 @@
 import requests
 import base64
 import pyperclip as pc
-# pip install pillow
-from PIL import ImageGrab
+import subprocess
+import logging
+import os
+pc.set_clipboard("xclip")
+logger = logging.getLogger(__name__)
 
-img = ImageGrab.grab()
-# or ImageGrab.grab() to grab the whole screen!
+# def write_to_file(file_name):
+#     return subprocess.check_output(
+#         'xclip -selection clipboard -o -t image/jpg ' + file_name,
+#         env={
+#             'LANG': 'en_US.UTF-8'
+#         }).decode('utf-8')
 
-# print(img)
-# <PIL.BmpImagePlugin.DibImageFile image mode=RGB size=380x173 at 0x16A43064DA0>
-with open('baidu_access_token.txt') as file_obj:
-    access_token_val = file_obj.read()
+# def run_cmd(cmd):
+#     logger.debug('running cmd: %r', cmd)
+#     subprocess.check_call(cmd)
 
-request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
 
-## 文件
-# file_name = '1.jpg'
-# 二进制方式打开图片文件
-# with open(file_name, 'rb') as file_obj:
-#     img = base64.b64encode(file_obj.read())
+def write_to_file(file_name):
+    cmd = 'xclip -selection clipboard -o -t image/jpg > ' + file_name
+    os.system(cmd)
+    # run_cmd(cmd)
 
-## 剪贴板
-img = base64.b64encode(img)
 
-params = {"image": img}
-request_url = request_url + "?access_token=" + access_token_val
-headers = {'content-type': 'application/x-www-form-urlencoded'}
-response = requests.post(request_url, data=params, headers=headers)
-if response:
-    print(response.json())
+def baidu_response(file_name):
+    with open('baidu_access_token.txt') as file_obj:
+        access_token_val = file_obj.read()
+    request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
+    # 二进制方式打开图片文件
+    with open(file_name, 'rb') as file_obj:
+        img = base64.b64encode(file_obj.read())
+    params = {"image": img}
+    request_url = request_url + "?access_token=" + access_token_val
+    headers = {'content-type': 'application/x-www-form-urlencoded'}
+    response = requests.post(request_url, data=params, headers=headers)
+    return response
 
-words_lst = [txt['words'] for txt in response.json()['words_result']]
 
-text = "".join(words_lst)
+# pasting the text from clipboard
+# imgclip = pc.paste()
 
-imgclip = pc.paste()
-pc.copy(text)
+# with open(file_name, 'w') as f:
+#     f.write(imgclip)
+
+
+def main():
+    file_name = '/tmp/img_to_ocr.jpg'
+    write_to_file(file_name)
+    response = baidu_response(file_name)
+    if response:
+        words_lst = [txt['words'] for txt in response.json()['words_result']]
+
+    text = "".join(words_lst)
+    # copying text to clipboard
+    pc.copy(text)
+
+
+if __name__ == "__main__":
+    main()
