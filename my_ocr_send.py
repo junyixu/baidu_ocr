@@ -31,13 +31,13 @@ logger = logging.getLogger(__name__)
 
 
 def write_to_file(file_name):
-    cmd = 'xclip -selection clipboard -o -t image/jpg > ' + file_name
+    cmd = 'flameshot gui -r | xclip -selection clipboard && xclip -selection clipboard -o -t image/jpg > ' + file_name
     os.system(cmd)
     # run_cmd(cmd)
 
 
 def baidu_response(file_name):
-    with open('baidu_access_token.txt') as file_obj:
+    with open('./baidu_access_token.txt') as file_obj:
         access_token_val = file_obj.read()
     request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
     # 二进制方式打开图片文件
