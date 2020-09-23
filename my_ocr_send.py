@@ -9,12 +9,14 @@
 通用文字识别
 '''
 
+from io import StringIO
 import requests
 import base64
 import pyperclip as pc
 # import subprocess
 # import logging
 import os
+import subprocess
 # pc.set_clipboard("xclip")
 # logger = logging.getLogger(__name__)
 
@@ -30,19 +32,24 @@ import os
 #     subprocess.check_call(cmd)
 
 
-def write_to_file(file_name):
-    cmd = 'flameshot gui -r > ' + file_name
-    os.system(cmd)
+def call_flameshot():
+    cmd = 'flameshot gui -r'
+    res = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, close_fds=True)
+    raw_text = res.stdout.readlines()
+    text = b''
+    for i in range(len(raw_text)):
+        text = text+raw_text[i]
+    return text
     # run_cmd(cmd)
 
 
-def baidu_response(file_name):
+def baidu_response(text_result):
     with open('./baidu_access_token.txt') as file_obj:
         access_token_val = file_obj.read()
     request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
     # 二进制方式打开图片文件
-    with open(file_name, 'rb') as file_obj:
-        img = base64.b64encode(file_obj.read())
+    img = base64.b64encode(text_result)
     params = {"image": img}
     request_url = request_url + "?access_token=" + access_token_val
     headers = {'content-type': 'application/x-www-form-urlencoded'}
@@ -58,11 +65,15 @@ def baidu_response(file_name):
 
 
 def main():
-    file_name = '/tmp/img_to_ocr.jpg'
-    write_to_file(file_name)
-    response = baidu_response(file_name)
-    if response:
-        words_lst = [txt['words'] for txt in response.json()['words_result']]
+    text_result = call_flameshot()
+    response = ""
+    try:
+        response = baidu_response(text_result)
+    except Exception as e:
+        subprocess.Popen(
+            ['notify-send', "从百度获取响应失败！"])
+        return -1
+    words_lst = [txt['words'] for txt in response.json()['words_result']]
 
     text = "".join(words_lst)
     # copying text to clipboard
