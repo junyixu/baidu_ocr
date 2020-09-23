@@ -47,6 +47,9 @@ def call_flameshot():
 def baidu_response(text_result):
     with open('./baidu_access_token.txt') as file_obj:
         access_token_val = file_obj.read()
+        # 移除尾部换行符
+        while(access_token_val[-1] in ['\r', '\n']):
+            access_token_val = access_token_val[:-1]
     request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
     # 二进制方式打开图片文件
     img = base64.b64encode(text_result)
