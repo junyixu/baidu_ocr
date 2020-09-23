@@ -34,12 +34,12 @@ import subprocess
 
 def call_flameshot():
     cmd = 'flameshot gui -r'
-    res = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, close_fds=True)
+    res = subprocess.Popen(cmd,
+                           shell=True,
+                           stdout=subprocess.PIPE,
+                           close_fds=True)
     raw_text = res.stdout.readlines()
-    text = b''
-    for i in range(len(raw_text)):
-        text = text+raw_text[i]
+    text = b''.join(raw_text)
     return text
     # run_cmd(cmd)
 
@@ -48,7 +48,7 @@ def baidu_response(text_result):
     with open('./baidu_access_token.txt') as file_obj:
         access_token_val = file_obj.read()
         # 移除尾部换行符
-        while(access_token_val[-1] in ['\r', '\n']):
+        while (access_token_val[-1] in ['\r', '\n']):
             access_token_val = access_token_val[:-1]
     request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
     # 二进制方式打开图片文件
@@ -73,8 +73,7 @@ def main():
     try:
         response = baidu_response(text_result)
     except Exception as e:
-        subprocess.Popen(
-            ['notify-send', "从百度获取响应失败！"])
+        subprocess.Popen(['notify-send', "从百度获取响应失败！"])
         return -1
     words_lst = [txt['words'] for txt in response.json()['words_result']]
 
