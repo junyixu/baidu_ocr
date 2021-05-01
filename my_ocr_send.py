@@ -17,6 +17,7 @@ import pyperclip as pc
 # import logging
 import os
 import subprocess
+
 # pc.set_clipboard("xclip")
 # logger = logging.getLogger(__name__)
 
@@ -45,20 +46,30 @@ def call_flameshot():
 
 
 def baidu_response(text_result):
-    with open('./baidu_access_token.txt') as file_obj:
-        access_token_val = file_obj.read()
-        # 移除尾部换行符
-        while (access_token_val[-1] in ['\r', '\n']):
-            access_token_val = access_token_val[:-1]
     request_url = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
     # 二进制方式打开图片文件
     img = base64.b64encode(text_result)
     params = {"image": img}
+    # the_txt_file = get_baidu_access_token() # 如果文件存在就打开？
+    access_token_val = os.environ.get('BAIDU_ACCESS_TOKEN', 'your token here')
     request_url = request_url + "?access_token=" + access_token_val
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     response = requests.post(request_url, data=params, headers=headers)
     return response
 
+
+def get_baidu_access_token():
+    with open('./baidu_access_token.txt') as file_obj:
+        access_token_val = file_obj.read()
+    while (access_token_val[-1] in ['\r', '\n']):
+        access_token_val = access_token_val[:-1]  # 移除尾部换行符
+    return access_token_val
+
+
+# def notify_send(arg1):
+#     pass
+
+# TODO -D debugging mode
 
 # pasting the text from clipboard
 # imgclip = pc.paste()
@@ -72,7 +83,7 @@ def main():
     response = ""
     try:
         response = baidu_response(text_result)
-    except Exception as e:
+    except Exception as e:  # TODO 写个装饰器
         subprocess.Popen(['notify-send', "从百度获取响应失败！"])
         return -1
     words_lst = [txt['words'] for txt in response.json()['words_result']]
